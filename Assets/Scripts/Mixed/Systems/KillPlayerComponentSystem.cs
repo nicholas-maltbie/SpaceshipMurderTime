@@ -9,6 +9,9 @@ using System.ComponentModel;
 using SpaceshipMurderTime;
 using Unity.Rendering;
 using System.Drawing;
+using System;
+using PropHunt.Mixed.Commands;
+using System.Linq;
 
 namespace PropHunt.Mixed.Systems
 {
@@ -56,24 +59,17 @@ namespace PropHunt.Mixed.Systems
     {
         protected override void OnUpdate()
         {
-            bool isServer = World.GetExistingSystem<ServerSimulationSystemGroup>() != null;
-
-            if (isServer)
+            Entities.ForEach((ref PlayerAliveState state, in Kill kill) =>
             {
-                Entities.ForEach((
-                    ref PlayerAliveState state,
-                    in Kill kill) =>
+                if (state.isAlive)
                 {
-                    if( state.isAlive )
-                    {
-                        state.isAlive = false;
-                    }
-                    
+                    state.isAlive = false;
                 }
-                ).ScheduleParallel();
             }
+            ).ScheduleParallel();
         }
     }
+
 
     /// <summary>
     /// System group for resolving push forces applied to dynamic objects in the scene
@@ -90,26 +86,64 @@ namespace PropHunt.Mixed.Systems
             Entities.ForEach(
                 (Entity entity, ref PlayerAliveState state, ref Kill kill) =>
                 {
-                    if(state.isAlive == false)
+                    if (state.isAlive == false)
                     {
-                        PostUpdateCommands.RemoveComponent<UpdateMaterialComponentData>(entity);
-                        var renderMesh = EntityManager.GetSharedComponentData<RenderMesh>(entity);
-                        var material = SharedMaterials.Instance.GetMaterialById(3);
-
-                        // Set the material.
-                        ecb.SetSharedComponent(entity, new RenderMesh
-                        {
-                            mesh = renderMesh.mesh,
-                            material = material,
-                            subMesh = renderMesh.subMesh,
-                            layer = renderMesh.layer,
-                            castShadows = renderMesh.castShadows,
-                            needMotionVectorPass = renderMesh.needMotionVectorPass,
-                            receiveShadows = renderMesh.receiveShadows,
-                        });
+                        HideChildren(entity, ecb);
                     }
                 }
             );
+        }
+
+        private void HideChildren(Entity entity, EntityCommandBuffer ecb)
+        {
+            if (EntityManager.HasComponent<Child>(entity))
+            {
+                foreach (var child in EntityManager.GetBuffer<Child>(entity))
+                {
+                    HideChildren(child.Value, ecb);
+                }
+            }
+            if (EntityManager.HasComponent<RenderMesh>(entity))
+            {
+                PostUpdateCommands.RemoveComponent<UpdateMaterialComponentData>(entity);
+                var renderMesh = EntityManager.GetSharedComponentData<RenderMesh>(entity);
+                var material = SharedMaterials.Instance.GetMaterialById(3);
+
+                // Set the material.
+                ecb.SetSharedComponent(entity, new RenderMesh
+                {
+                    mesh = renderMesh.mesh,
+                    material = material,
+                    subMesh = renderMesh.subMesh,
+                    layer = renderMesh.layer,
+                    castShadows = renderMesh.castShadows,
+                    needMotionVectorPass = renderMesh.needMotionVectorPass,
+                    receiveShadows = renderMesh.receiveShadows,
+                });
+            }
+            if (EntityManager.HasComponent<PhysicsCollider>(entity))
+            {
+                /*
+                unsafe
+                {
+                    var pc = EntityManager.GetComponentData<PhysicsCollider>(entity).ColliderPtr;
+                    pc->Filter = new CollisionFilter
+                    {
+                        // Set it to Ghost layer
+                        BelongsTo = 1 << 3,
+                        CollidesWith = 0u,
+                        GroupIndex = pc->Filter.GroupIndex
+                    };
+
+                    Collider col = new CapsuleCollider
+
+                    PostUpdateCommands.SetComponent<PhysicsCollider>(entity, new PhysicsCollider 
+                    { 
+                        Value = BlobAssetReference<Collider>.Create()
+                    });
+                }
+                */
+            }
         }
     }
 
@@ -127,23 +161,43 @@ namespace PropHunt.Mixed.Systems
         {
 
             RequireSingletonForUpdate<PlayerState>();
+            RequireSingletonForUpdate<NetworkIdComponent>();
             Entity entity = EntityManager.CreateEntity(typeof(PlayerState));
             EntityManager.SetComponentData(entity, new PlayerState { vision = PlayerVisionState.ALIVE });
-            
-            // Debug.Log("Creating client world");
+
         }
 
+        public float elapsed = 0;
         protected override void OnUpdate()
         {
+            var group = World.GetExistingSystem<GhostPredictionSystemGroup>();
+            var tick = group.PredictingTick;
+            var deltaTime = Time.DeltaTime;
+            var isClient = World.GetExistingSystem<ClientSimulationSystemGroup>() != null;
+
             int localPlayerId = GetSingleton<NetworkIdComponent>().Value;
 
             Entity stateSingleton = GetSingletonEntity<PlayerState>();
             Entities.ForEach(
-                    (ref PlayerId player, ref PlayerAliveState state) =>
+                    (Entity entity, DynamicBuffer<PlayerInput> inputBuffer, ref PlayerAliveState state, ref PlayerId player, ref PredictedGhostComponent prediction) =>
                     {
-                        if( player.playerId == localPlayerId )
+                        if (!GhostPredictionSystemGroup.ShouldPredict(tick, prediction))
                         {
-                            if (state.isAlive == true )
+                            return;
+                        }
+
+                        // This is a debug which will kill you when you interact
+
+                        inputBuffer.GetDataAtTick(tick, out var input);
+                        if (input.IsInteracting)
+                        {
+                            PostUpdateCommands.AddComponent<Kill>(entity);
+                        }
+
+
+                        if (player.playerId == localPlayerId)
+                        {
+                            if (state.isAlive == true)
                             {
                                 EntityManager.SetComponentData(stateSingleton, new PlayerState { vision = PlayerVisionState.ALIVE });
                             }

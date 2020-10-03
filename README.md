@@ -1,18 +1,14 @@
-# PropHunt
+# SpaceshipMurderTime
 
-Attempt to create a PropHunt simple game with unity for fun based of the
-Gmod game mode.
+Attempt to create a crappy clone of the AmongUs game using Unity and the Data Oriented Technology Stack.
+
+This is for the MakeUC remote hackathon in fall 2020 October 3rd-4th. 
 
 # Game
 
-Players will be in two teams, prop and hunter.
+Players will be in two imposter and crewmate.
 
-Props will hide and can disguise themselves as objects in the environment.
-
-Hunters will chase props around the map searching for props.
-
-Props get a small amount of time to hide before hunters track them down and
-try to find them.
+Cremates will attempt to repair ship while imposters sabotage and attempt to kill off cremates.
 
 ## Development Environment
 

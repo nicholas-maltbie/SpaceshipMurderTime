@@ -11,6 +11,8 @@ namespace PropHunt.Generated
         protected override void OnCreate()
         {
             var ghostCollectionSystem = World.GetOrCreateSystem<GhostCollectionSystem>();
+            ghostCollectionSystem.AddSerializer(SpaceshipMurderTimePlayerAliveStateGhostComponentSerializer.State);
+            ghostCollectionSystem.AddSerializer(SpaceshipMurderTimeKillGhostComponentSerializer.State);
             ghostCollectionSystem.AddSerializer(PropHuntMixedComponentsKCCMovementSettingsGhostComponentSerializer.State);
             ghostCollectionSystem.AddSerializer(PropHuntMixedComponentsKCCJumpingGhostComponentSerializer.State);
             ghostCollectionSystem.AddSerializer(PropHuntMixedComponentsKCCGroundedGhostComponentSerializer.State);

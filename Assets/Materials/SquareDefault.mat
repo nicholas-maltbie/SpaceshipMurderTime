@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: SquareDefault
-  m_Shader: {fileID: -6465566751694194690, guid: f9c4155b45f8ccd4bab657a36ad4095d,
+  m_Shader: {fileID: -6465566751694194690, guid: 7e4adeed8913ac246a93c13ac96808ff,
     type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
@@ -21,6 +21,10 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - Texture2D_69A4DF54:
+        m_Texture: {fileID: 2800000, guid: 7e2afcfd67986e44eb45eb1dd5dbe19b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - Texture2D_A6659B51:
         m_Texture: {fileID: 2800000, guid: 7e2afcfd67986e44eb45eb1dd5dbe19b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -69,7 +73,12 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - Boolean_27167091: 1
+    - Boolean_6DB0D12B: 1
+    - Vector1_2A284CEB: 1
+    - Vector1_3E8F301F: 1.5
     - Vector1_4C4B7100: 1
+    - Vector1_7FF87612: 2
     - _AlphaClip: 0
     - _Blend: 0
     - _BumpScale: 1
@@ -100,9 +109,13 @@ Material:
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
+    - Color_AB0E819: {r: 0, g: 0.14966917, b: 1, a: 0}
+    - Color_F6B74E43: {r: 1, g: 0.9568628, b: 0, a: 0}
     - Color_F9CC1639: {r: 0.06197312, g: 0.0141509175, b: 1, a: 0}
     - Vector2_49D10C6: {r: 1, g: 1, b: 0, a: 0}
     - Vector2_57A569B6: {r: 0, g: 0, b: 0, a: 0}
+    - Vector2_5D4DE574: {r: 0, g: 0, b: 0, a: 0}
+    - Vector2_D1D4C176: {r: 1, g: 1, b: 0, a: 0}
     - _BaseColor: {r: 0, g: 0.28873968, b: 1, a: 1}
     - _Color: {r: 0, g: 0.28873968, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

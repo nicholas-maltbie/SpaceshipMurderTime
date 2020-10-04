@@ -3,6 +3,8 @@ using Unity.Entities;
 using Unity.Scenes;
 using PropHunt.Mixed.Components;
 using Unity.NetCode;
+using PropHunt.SceneManagement;
+using static PropHunt.Mixed.Systems.GameStateSystem;
 
 namespace PropHunt.Mixed.Systems
 {
@@ -11,6 +13,11 @@ namespace PropHunt.Mixed.Systems
     /// </summary>
     public class SceneLoaderSystem : ComponentSystem
     {
+        /// <summary>
+        /// Scene system to manage scenes
+        /// </summary>
+        private SceneSystem sceneSystem;
+
         /// <summary>
         /// Information to load or unload a scene
         /// </summary>
@@ -35,6 +42,7 @@ namespace PropHunt.Mixed.Systems
         protected override void OnCreate()
         {
             RequireSingletonForUpdate<SceneLoadInfo>();
+            this.sceneSystem = World.GetOrCreateSystem<SceneSystem>();
         }
 
         protected override void OnUpdate()
@@ -48,37 +56,24 @@ namespace PropHunt.Mixed.Systems
             bool isClient = World.GetExistingSystem<ClientSimulationSystemGroup>() != null;
             UnityEngine.Debug.Log($"client: {isClient}, Processing scene request - load {toLoad} - unload {toUnload}");
 
-            Entities.ForEach((Entity entity, SubScene subScene) =>
+            if (toLoad.Length > 0 && SubSceneReferences.Instance.ContainsScene(toLoad))
             {
-                // Skip entities with scene reference components
-                if (!loadInfo.unloadAll && EntityManager.HasComponent<SceneReference>(entity))
+                SubScene scene = SubSceneReferences.Instance.GetSceneByName(toLoad);
+                sceneSystem.LoadSceneAsync(scene.SceneGUID);
+                GameFlow flow = toLoad == GameStateSystem.LobbySceneName ? GameFlow.Lobby : GameFlow.InGame;
+                Entity entity = GetSingletonEntity<GameStateSystem.GameState>();
+                PostUpdateCommands.SetComponent(entity, new GameStateSystem.GameState
                 {
-                    return;
-                }
-                string sceneName = subScene.SceneAsset.name;
-
-                // If we want to load it and it is not already loaded
-                if (toLoad == sceneName && !EntityManager.HasComponent<RequestSceneLoaded>(entity))
-                {
-                    // Request scene unload
-                    EntityManager.AddComponent<RequestSceneLoaded>(entity);
-                    // If loading lobby, ensure game state is updated
-                    Entity gameStateEntity = GetSingletonEntity<PropHunt.Mixed.Systems.GameStateSystem.GameState>();
-                    GameStateSystem.GameFlow stage = sceneName == GameStateSystem.LobbySceneName ? GameStateSystem.GameFlow.Lobby : GameStateSystem.GameFlow.InGame;
-                    EntityManager.SetComponentData(gameStateEntity, new GameStateSystem.GameState {
-                        stage = stage,
-                        loadedScene = sceneName
-                    });
-                    UnityEngine.Debug.Log($"client: {isClient}, {entity.Index}, Loading scene of name {sceneName}");
-                }
-                // If we want to unload it and it is already loaded
-                else if (toUnload == sceneName && EntityManager.HasComponent<RequestSceneLoaded>(entity))
-                {
-                    // Request scene loaded
-                    EntityManager.RemoveComponent<RequestSceneLoaded>(entity);
-                    UnityEngine.Debug.Log($"client: {isClient}, {entity.Index}, Unloading scene of name {sceneName}");
-                }
-            });
+                    loadedScene = toLoad,
+                    stage = flow,
+                });
+            }
+            if (toUnload.Length > 0 && SubSceneReferences.Instance.ContainsScene(toUnload))
+            {
+                SubScene scene = SubSceneReferences.Instance.GetSceneByName(toUnload);
+                sceneSystem.UnloadScene(scene.SceneGUID);
+            }
+            
         }
     }
 }

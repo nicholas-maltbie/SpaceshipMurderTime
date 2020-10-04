@@ -24,6 +24,12 @@ namespace PropHunt.Server.Systems
                 var loadSceneRequest = PostUpdateCommands.CreateEntity();
                 PostUpdateCommands.AddComponent(loadSceneRequest, new SceneLoadCommand { loadScene = selectedMap, unloadScene = GameStateSystem.LobbySceneName });
                 PostUpdateCommands.AddComponent(loadSceneRequest, new SendRpcCommandRequestComponent());
+                Entity sceneLoaderSingleton = PostUpdateCommands.CreateEntity();
+                PostUpdateCommands.AddComponent(sceneLoaderSingleton, new SceneLoaderSystem.SceneLoadInfo
+                {
+                    sceneToLoad = selectedMap,
+                    sceneToUnload = GameStateSystem.LobbySceneName
+                });
             });
         }
     }

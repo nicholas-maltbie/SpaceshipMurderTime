@@ -123,26 +123,7 @@ namespace PropHunt.Mixed.Systems
             }
             if (EntityManager.HasComponent<PhysicsCollider>(entity))
             {
-                /*
-                unsafe
-                {
-                    var pc = EntityManager.GetComponentData<PhysicsCollider>(entity).ColliderPtr;
-                    pc->Filter = new CollisionFilter
-                    {
-                        // Set it to Ghost layer
-                        BelongsTo = 1 << 3,
-                        CollidesWith = 0u,
-                        GroupIndex = pc->Filter.GroupIndex
-                    };
 
-                    Collider col = new CapsuleCollider
-
-                    PostUpdateCommands.SetComponent<PhysicsCollider>(entity, new PhysicsCollider 
-                    { 
-                        Value = BlobAssetReference<Collider>.Create()
-                    });
-                }
-                */
             }
         }
     }
@@ -172,7 +153,6 @@ namespace PropHunt.Mixed.Systems
         {
             var group = World.GetExistingSystem<GhostPredictionSystemGroup>();
             var tick = group.PredictingTick;
-            var deltaTime = Time.DeltaTime;
             var isClient = World.GetExistingSystem<ClientSimulationSystemGroup>() != null;
 
             int localPlayerId = GetSingleton<NetworkIdComponent>().Value;
@@ -181,19 +161,6 @@ namespace PropHunt.Mixed.Systems
             Entities.ForEach(
                     (Entity entity, DynamicBuffer<PlayerInput> inputBuffer, ref PlayerAliveState state, ref PlayerId player, ref PredictedGhostComponent prediction) =>
                     {
-                        if (!GhostPredictionSystemGroup.ShouldPredict(tick, prediction))
-                        {
-                            return;
-                        }
-
-                        // This is a debug which will kill you when you interact
-
-                        inputBuffer.GetDataAtTick(tick, out var input);
-                        if (input.IsInteracting)
-                        {
-                            PostUpdateCommands.AddComponent<Kill>(entity);
-                        }
-
 
                         if (player.playerId == localPlayerId)
                         {
@@ -205,6 +172,34 @@ namespace PropHunt.Mixed.Systems
                             {
                                 EntityManager.SetComponentData(stateSingleton, new PlayerState { vision = PlayerVisionState.GHOST });
                             }
+                        }
+                    }
+            );
+        }
+    }
+
+    public class DebugPlayerKill : ComponentSystem
+    {
+        protected override void OnUpdate()
+        {
+            var group = World.GetExistingSystem<GhostPredictionSystemGroup>();
+            var tick = group.PredictingTick;
+
+            int localPlayerId = GetSingleton<NetworkIdComponent>().Value;
+
+            Entities.ForEach(
+                    (Entity entity, DynamicBuffer<PlayerInput> inputBuffer, ref PredictedGhostComponent prediction) =>
+                    {
+                        if (!GhostPredictionSystemGroup.ShouldPredict(tick, prediction))
+                        {
+                            return;
+                        }
+
+                        // This is a debug which will kill you when you interact
+                        inputBuffer.GetDataAtTick(tick, out var input);
+                        if (input.IsInteracting)
+                        {
+                            PostUpdateCommands.AddComponent<Kill>(entity);
                         }
                     }
             );

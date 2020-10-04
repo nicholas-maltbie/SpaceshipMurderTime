@@ -79,6 +79,7 @@ namespace PropHunt.Mixed.Systems
     /// 
     [UpdateAfter(typeof(ApplyKillCommand))]
     [UpdateBefore(typeof(KillCommandCleanup))]
+    [UpdateInGroup(typeof(ClientSimulationSystemGroup))]
     public class UpdatePlayerState : ComponentSystem
     {
         protected override void OnCreate()
@@ -89,6 +90,8 @@ namespace PropHunt.Mixed.Systems
         protected override void OnUpdate()
         {
             var ecb = EntityManager.World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().CreateCommandBuffer();
+            // Send command to server to spawn new avatar
+            int localPlayerId = GetSingleton<NetworkIdComponent>().Value;
 
             bool isServer = World.GetExistingSystem<ServerSimulationSystemGroup>() != null;
 
@@ -101,29 +104,20 @@ namespace PropHunt.Mixed.Systems
                 ref PlayerView view,
                 ref PlayerId playerId) =>
             {
-                if (state.isAlive == false)
+                if (state.isAlive == false && playerId.playerId == localPlayerId)
                 {
-                    if (!isServer)
+                    Entity commandTarget = GetSingletonEntity<CommandTargetComponent>();
+                    PostUpdateCommands.SetComponent(commandTarget, new CommandTargetComponent { targetEntity = Entity.Null });
+                    // Send request to spawn new avatar
+                    var req = PostUpdateCommands.CreateEntity();
+                    PostUpdateCommands.AddComponent<SpawnAvatarCommand>(req);
+                    PostUpdateCommands.SetComponent(req, new SpawnAvatarCommand
                     {
-                        // Send command to server to spawn new avatar
-                        int localPlayerId = GetSingleton<NetworkIdComponent>().Value;
-                        // Reset CommandTargetComponent if losing local player
-                        if (playerId.playerId == localPlayerId)
-                        {
-                            Entity commandTarget = GetSingletonEntity<CommandTargetComponent>();
-                            PostUpdateCommands.SetComponent(commandTarget, new CommandTargetComponent { targetEntity = Entity.Null });
-                            // Send request to spawn new avatar
-                            var req = PostUpdateCommands.CreateEntity();
-                            PostUpdateCommands.AddComponent<SpawnAvatarCommand>(req);
-                            PostUpdateCommands.SetComponent(req, new SpawnAvatarCommand
-                            {
-                                avatarId = PlayerPrefabComponent.GhostCharacterId,
-                                position = translation.Value,
-                                attitude = rotation.Value,
-                            });
-                            PostUpdateCommands.AddComponent(req, new SendRpcCommandRequestComponent { TargetConnection = GetSingletonEntity<NetworkStreamInGame>() });
-                        }
-                    }
+                        avatarId = PlayerPrefabComponent.GhostCharacterId,
+                        position = translation.Value,
+                        attitude = rotation.Value,
+                    });
+                    PostUpdateCommands.AddComponent(req, new SendRpcCommandRequestComponent { TargetConnection = GetSingletonEntity<NetworkStreamInGame>() });
                 }
             });
         }
@@ -174,7 +168,6 @@ namespace PropHunt.Mixed.Systems
 
         protected override void OnCreate()
         {
-
             RequireSingletonForUpdate<PlayerState>();
             RequireSingletonForUpdate<NetworkIdComponent>();
             Entity entity = EntityManager.CreateEntity(typeof(PlayerState));
@@ -212,6 +205,7 @@ namespace PropHunt.Mixed.Systems
         }
     }
 
+    [UpdateInGroup(typeof(ClientSimulationSystemGroup))]
     public class DebugPlayerKill : ComponentSystem
     {
         protected override void OnCreate()

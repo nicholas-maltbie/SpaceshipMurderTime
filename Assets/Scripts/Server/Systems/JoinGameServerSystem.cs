@@ -1,4 +1,5 @@
 using System;
+using PropHunt.Authoring;
 using PropHunt.Mixed.Commands;
 using PropHunt.Mixed.Components;
 using Unity.Entities;
@@ -27,21 +28,19 @@ namespace PropHunt.Server.Systems
             RequireSingletonForUpdate<GhostPrefabCollectionComponent>();
         }
 
-        protected int GetPlayerGhostIndex(DynamicBuffer<GhostPrefabBuffer> ghostPrefabBuffers)
+        protected int GetPlayerGhostIndex(DynamicBuffer<GhostPrefabBuffer> ghostPrefabBuffers, int searchId)
         {
-            /*
             for (int i = 0; i < ghostPrefabBuffers.Length; i++)
             {
                 var found = ghostPrefabBuffers[i].Value;
                 // The prefab with a PlayerId will be returned
-                if (EntityManager.HasComponent<PlayerId>(found))
+                if (EntityManager.HasComponent<PlayerPrefabComponent>(found) &&
+                    EntityManager.GetComponentData<PlayerPrefabComponent>(found).idGUID == searchId)
                 {
                     return i;
                 }
             }
             return -1;
-            */
-            return 0;
         }
 
         protected override void OnUpdate()
@@ -56,7 +55,7 @@ namespace PropHunt.Server.Systems
                 // Setup the character avatar
                 Entity ghostCollection = GetSingletonEntity<GhostPrefabCollectionComponent>();
                 DynamicBuffer<GhostPrefabBuffer> ghostPrefabs = EntityManager.GetBuffer<GhostPrefabBuffer>(ghostCollection);
-                int ghostId = GetPlayerGhostIndex(ghostPrefabs);
+                int ghostId = GetPlayerGhostIndex(ghostPrefabs, PlayerPrefabComponent.AliveCharacterId);
                 var prefab = EntityManager.GetBuffer<GhostPrefabBuffer>(ghostCollection)[ghostId].Value;
                 var player = PostUpdateCommands.Instantiate(prefab);
                 PostUpdateCommands.SetComponent(player, new PlayerId { playerId = connectionId });

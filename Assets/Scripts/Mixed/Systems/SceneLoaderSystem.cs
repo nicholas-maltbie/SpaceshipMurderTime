@@ -54,7 +54,7 @@ namespace PropHunt.Mixed.Systems
                     EntityManager.AddComponent<RequestSceneLoaded>(entity);
                     // If loading lobby, ensure game state is updated
                     Entity gameStateEntity = GetSingletonEntity<PropHunt.Mixed.Systems.GameStateSystem.GameState>();
-                    GameStateSystem.GameStage stage = sceneName == GameStateSystem.LobbySceneName ? GameStateSystem.GameStage.Lobby : GameStateSystem.GameStage.InGame;
+                    GameStateSystem.GameFlow stage = sceneName == GameStateSystem.LobbySceneName ? GameStateSystem.GameFlow.Lobby : GameStateSystem.GameFlow.InGame;
                     EntityManager.SetComponentData(gameStateEntity, new GameStateSystem.GameState {
                         stage = stage,
                         loadedScene = sceneName

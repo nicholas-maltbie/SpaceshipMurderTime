@@ -17,7 +17,7 @@ namespace PropHunt.Mixed.Systems
         /// <summary>
         /// Current sage of the name
         /// </summary>
-        public enum GameStage { Lobby, InGame }
+        public enum GameFlow { Lobby, InGame }
 
         /// <summary>
         /// Component for current game state
@@ -27,7 +27,7 @@ namespace PropHunt.Mixed.Systems
             /// <summary>
             /// Current stage of the game
             /// </summary>
-            public GameStage stage;
+            public GameFlow stage;
 
             /// <summary>
             /// Currently (or most recently) loaded scene
@@ -39,7 +39,7 @@ namespace PropHunt.Mixed.Systems
         {
             Entity gameStateSingleton = EntityManager.CreateEntity(typeof(GameState));
             EntityManager.SetComponentData(gameStateSingleton, new GameState{
-                stage = GameStage.Lobby,
+                stage = GameFlow.Lobby,
                 loadedScene = LobbySceneName,
             });
         }

@@ -1,4 +1,5 @@
 using System;
+using PropHunt.Authoring;
 using PropHunt.Mixed.Commands;
 using PropHunt.Mixed.Components;
 using Unity.Entities;
@@ -28,20 +29,6 @@ namespace PropHunt.Server.Systems
             RequireSingletonForUpdate<SpawnZone>();
         }
 
-        protected int GetPlayerGhostIndex(DynamicBuffer<GhostPrefabBuffer> ghostPrefabBuffers)
-        {
-            for (int i = 0; i < ghostPrefabBuffers.Length; i++)
-            {
-                var found = ghostPrefabBuffers[i].Value;
-                // The prefab with a PlayerId will be returned
-                if (EntityManager.HasComponent<PlayerId>(found))
-                {
-                    return i;
-                }
-            }
-            return -1;
-        }
-
         protected override void OnUpdate()
         {
             var spawnZoneEntity = GetSingletonEntity<SpawnZone>();
@@ -57,7 +44,7 @@ namespace PropHunt.Server.Systems
                 // Setup the character avatar
                 Entity ghostCollection = GetSingletonEntity<GhostPrefabCollectionComponent>();
                 DynamicBuffer<GhostPrefabBuffer> ghostPrefabs = EntityManager.GetBuffer<GhostPrefabBuffer>(ghostCollection);
-                int ghostId = GetPlayerGhostIndex(ghostPrefabs);
+                int ghostId = SpawnPlayerAvatarSystem.GetPlayerGhostIndex(ghostPrefabs, PlayerPrefabComponent.AliveCharacterId, EntityManager);
                 var prefab = EntityManager.GetBuffer<GhostPrefabBuffer>(ghostCollection)[ghostId].Value;
                 var player = PostUpdateCommands.Instantiate(prefab);
                 PostUpdateCommands.SetComponent(player, new PlayerId { playerId = connectionId });

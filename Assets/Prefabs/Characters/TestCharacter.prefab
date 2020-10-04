@@ -99,6 +99,8 @@ GameObject:
   - component: {fileID: 7895700625144195435}
   - component: {fileID: 4421601493602290122}
   - component: {fileID: -8328457236669233695}
+  - component: {fileID: 4845944132821538870}
+  - component: {fileID: -6466545826303980536}
   m_Layer: 0
   m_Name: TestCharacter
   m_TagString: Untagged
@@ -114,7 +116,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3378658210144245526}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 5053033229686449594}
@@ -147,6 +149,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   viewRotationRate: 180
   offset: {x: 0, y: 1.6, z: 0}
+  maxPitch: 90
+  minPitch: -90
 --- !u!114 &-8700528946816345019
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -276,7 +280,7 @@ MonoBehaviour:
         Category00: 1
         Category01: 1
         Category02: 1
-        Category03: 1
+        Category03: 0
         Category04: 1
         Category05: 1
         Category06: 1
@@ -413,6 +417,36 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   viewRotationRate: 180
   offset: {x: 0, y: 1.7, z: 0}
+  maxPitch: 90
+  minPitch: -90
+--- !u!114 &4845944132821538870
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3378658210144245526}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fbdcb47c0ad081c4794bf5b517f54924, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isAlive: 1
+  timeOfDeath: 0
+  killerId: 0
+--- !u!114 &-6466545826303980536
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3378658210144245526}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2efddf881692094aae0c16cce4497c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  elementId: 8672460
 --- !u!1 &5362533525206946736
 GameObject:
   m_ObjectHideFlags: 0

@@ -8,7 +8,7 @@ using Unity.NetCode;
 namespace PropHunt.Client.Systems
 {
     [UpdateInGroup(typeof(ClientSimulationSystemGroup))]
-    public class ClientRpcReceiveSystem : ComponentSystem
+    public class ClientSceneLoadRpcReceiveSystem : ComponentSystem
     {
         protected override void OnCreate()
         {

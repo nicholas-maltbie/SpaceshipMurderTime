@@ -25,6 +25,11 @@ namespace PropHunt.Mixed.Systems
             /// Name of scene to unload
             /// </summary>
             public FixedString64 sceneToUnload;
+
+            /// <summary>
+            /// Unload all types of subscene
+            /// </summary>
+            public bool unloadAll;
         }
 
         protected override void OnCreate()
@@ -43,8 +48,13 @@ namespace PropHunt.Mixed.Systems
             bool isClient = World.GetExistingSystem<ClientSimulationSystemGroup>() != null;
             UnityEngine.Debug.Log($"client: {isClient}, Processing scene request - load {toLoad} - unload {toUnload}");
 
-            Entities.ForEach((Entity entity, SubScene subScene, ref SceneReference sceneReference) =>
+            Entities.ForEach((Entity entity, SubScene subScene) =>
             {
+                // Skip entities with scene reference components
+                if (!loadInfo.unloadAll && EntityManager.HasComponent<SceneReference>(entity))
+                {
+                    return;
+                }
                 string sceneName = subScene.SceneAsset.name;
 
                 // If we want to load it and it is not already loaded
@@ -59,14 +69,14 @@ namespace PropHunt.Mixed.Systems
                         stage = stage,
                         loadedScene = sceneName
                     });
-                    UnityEngine.Debug.Log($"{entity.Index}, Loading scene of name {sceneName}");
+                    UnityEngine.Debug.Log($"client: {isClient}, {entity.Index}, Loading scene of name {sceneName}");
                 }
                 // If we want to unload it and it is already loaded
                 else if (toUnload == sceneName && EntityManager.HasComponent<RequestSceneLoaded>(entity))
                 {
                     // Request scene loaded
                     EntityManager.RemoveComponent<RequestSceneLoaded>(entity);
-                    UnityEngine.Debug.Log($"{entity.Index}, Unloading scene of name {sceneName}");
+                    UnityEngine.Debug.Log($"client: {isClient}, {entity.Index}, Unloading scene of name {sceneName}");
                 }
             });
         }

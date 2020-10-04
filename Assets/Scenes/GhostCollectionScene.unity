@@ -172,6 +172,9 @@ MonoBehaviour:
     enabled: 1
   - prefab: {fileID: 954155269039589506, guid: 2cb17ae5e579cc9449ff4a00b1bc1e1d, type: 3}
     enabled: 1
+  - prefab: {fileID: 7895700625144195435, guid: b690e236c1dc3ba4bbdd87e91a5765c9,
+      type: 3}
+    enabled: 1
 --- !u!4 &1967681299
 Transform:
   m_ObjectHideFlags: 0

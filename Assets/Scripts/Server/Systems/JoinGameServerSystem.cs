@@ -30,6 +30,7 @@ namespace PropHunt.Server.Systems
 
         protected int GetPlayerGhostIndex(DynamicBuffer<GhostPrefabBuffer> ghostPrefabBuffers)
         {
+            /*
             for (int i = 0; i < ghostPrefabBuffers.Length; i++)
             {
                 var found = ghostPrefabBuffers[i].Value;
@@ -40,6 +41,8 @@ namespace PropHunt.Server.Systems
                 }
             }
             return -1;
+            */
+            return 0;
         }
 
         protected override void OnUpdate()

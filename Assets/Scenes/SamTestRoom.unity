@@ -8337,6 +8337,9 @@ MonoBehaviour:
     enabled: 1
   - prefab: {fileID: 486005314371101126, guid: 568da5fbb592558478a9f165d1b86797, type: 3}
     enabled: 1
+  - prefab: {fileID: 7895700625144195435, guid: b690e236c1dc3ba4bbdd87e91a5765c9,
+      type: 3}
+    enabled: 1
 --- !u!1 &585440707
 GameObject:
   m_ObjectHideFlags: 0

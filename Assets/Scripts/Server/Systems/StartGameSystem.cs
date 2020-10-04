@@ -30,6 +30,8 @@ namespace PropHunt.Server.Systems
                     sceneToLoad = selectedMap,
                     sceneToUnload = GameStateSystem.LobbySceneName
                 });
+                Entity teleportPlayers = PostUpdateCommands.CreateEntity();
+                PostUpdateCommands.AddComponent(teleportPlayers, new TeleportPlayersToSpawn.TeleportPlayerTimer { delay = 0.1f });
             });
         }
     }

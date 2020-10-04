@@ -70,9 +70,6 @@ namespace PropHunt.Server.Systems
                 PostUpdateCommands.SetComponent(player, new Rotation { Value = spawnRotation });
                 PostUpdateCommands.SetComponent(player, new PlayerView { pitch = 0, yaw = verticalRotation });
 
-                Debug.Log($"{spawnTranslation}");
-                Debug.Log($"{spawnRotation}");
-
                 PostUpdateCommands.AddBuffer<PlayerInput>(player);
                 PostUpdateCommands.SetComponent(reqSrc.SourceConnection, new CommandTargetComponent { targetEntity = player });
 

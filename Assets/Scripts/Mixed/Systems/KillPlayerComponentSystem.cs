@@ -81,6 +81,11 @@ namespace PropHunt.Mixed.Systems
     [UpdateBefore(typeof(KillCommandCleanup))]
     public class UpdatePlayerState : ComponentSystem
     {
+        protected override void OnCreate()
+        {
+            RequireSingletonForUpdate<NetworkIdComponent>();
+        }
+
         protected override void OnUpdate()
         {
             var ecb = EntityManager.World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().CreateCommandBuffer();
@@ -110,7 +115,8 @@ namespace PropHunt.Mixed.Systems
                             // Send request to spawn new avatar
                             var req = PostUpdateCommands.CreateEntity();
                             PostUpdateCommands.AddComponent<SpawnAvatarCommand>(req);
-                            PostUpdateCommands.SetComponent(req, new SpawnAvatarCommand {
+                            PostUpdateCommands.SetComponent(req, new SpawnAvatarCommand
+                            {
                                 avatarId = PlayerPrefabComponent.GhostCharacterId,
                                 position = translation.Value,
                                 attitude = rotation.Value,

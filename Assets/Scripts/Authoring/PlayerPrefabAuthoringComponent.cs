@@ -36,7 +36,7 @@ namespace PropHunt.Authoring
 
         public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
         {
-            dstManager.AddComponentData(entity, new PlayerPrefabComponent { idGUID = elementId } ) ;
+            dstManager.AddComponentData(entity, new PlayerPrefabComponent { idGUID = elementId });
         }
     }
 

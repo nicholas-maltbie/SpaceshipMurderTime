@@ -6,7 +6,7 @@ namespace SpaceshipMurderTime
 {
     [GenerateAuthoringComponent]
     [GhostComponent(PrefabType = GhostPrefabType.All)]
-    public struct PlayerAliveState  : IComponentData
+    public struct PlayerAliveState : IComponentData
     {
         /// <summary>
         /// Is the player alive?

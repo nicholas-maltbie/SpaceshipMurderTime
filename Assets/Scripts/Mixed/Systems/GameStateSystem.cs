@@ -38,7 +38,8 @@ namespace PropHunt.Mixed.Systems
         protected override void OnCreate()
         {
             Entity gameStateSingleton = EntityManager.CreateEntity(typeof(GameState));
-            EntityManager.SetComponentData(gameStateSingleton, new GameState{
+            EntityManager.SetComponentData(gameStateSingleton, new GameState
+            {
                 stage = GameFlow.Lobby,
                 loadedScene = LobbySceneName,
             });

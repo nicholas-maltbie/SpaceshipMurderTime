@@ -71,7 +71,7 @@ namespace PropHunt.Mixed.Systems
             {
                 SubSceneReferences.Instance.UnloadScene(toUnload, this.sceneSystem);
             }
-            
+
         }
     }
 }

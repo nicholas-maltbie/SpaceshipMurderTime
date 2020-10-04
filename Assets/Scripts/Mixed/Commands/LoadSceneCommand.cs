@@ -16,7 +16,7 @@ namespace PropHunt.Mixed.Commands
         /// Command to load a server string
         /// </summary>
         public FixedString64 loadScene;
-        
+
         /// <summary>
         /// Name of scene to unload
         /// </summary>

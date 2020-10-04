@@ -58,7 +58,8 @@ namespace PropHunt.Client.Systems
                     currentScene = "";
                 }
                 Entity sceneLoaderSingleton = PostUpdateCommands.CreateEntity();
-                PostUpdateCommands.AddComponent(sceneLoaderSingleton, new SceneLoaderSystem.SceneLoadInfo {
+                PostUpdateCommands.AddComponent(sceneLoaderSingleton, new SceneLoaderSystem.SceneLoadInfo
+                {
                     sceneToUnload = currentScene,
                     sceneToLoad = GameStateSystem.LobbySceneName,
                 });

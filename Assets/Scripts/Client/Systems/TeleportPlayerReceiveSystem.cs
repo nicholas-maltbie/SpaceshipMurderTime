@@ -49,7 +49,7 @@ namespace PropHunt.Client.Systems
                         translation.Value = targetPosition;
                         rotation.Value = targetRotation;
                         pv.pitch = 0;
-                        pv.yaw = ((Quaternion) rotation.Value).eulerAngles.y;
+                        pv.yaw = ((Quaternion)rotation.Value).eulerAngles.y;
                     }
                 });
             }

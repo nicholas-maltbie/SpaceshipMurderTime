@@ -22,7 +22,7 @@ namespace PropHunt.Mixed.Systems
         /// Scene system to manage scenes
         /// </summary>
         private SceneSystem sceneSystem;
-        
+
         /// <summary>
         /// Request to teleport all players to spawn
         /// </summary>
@@ -70,7 +70,7 @@ namespace PropHunt.Mixed.Systems
                 rotation.Value = spawnRotation;
 
                 var teleportPlayerRequest = PostUpdateCommands.CreateEntity();
-                PostUpdateCommands.AddComponent(teleportPlayerRequest, new TeleportPlayerCommand { position = spawnTranslation, attitude = spawnRotation, playerId = playerId.playerId});
+                PostUpdateCommands.AddComponent(teleportPlayerRequest, new TeleportPlayerCommand { position = spawnTranslation, attitude = spawnRotation, playerId = playerId.playerId });
                 PostUpdateCommands.AddComponent(teleportPlayerRequest, new SendRpcCommandRequestComponent());
             });
         }

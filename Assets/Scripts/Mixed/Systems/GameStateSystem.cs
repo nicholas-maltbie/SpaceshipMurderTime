@@ -12,7 +12,7 @@ namespace PropHunt.Mixed.Systems
         /// <summary>
         /// Name of lobby scene
         /// </summary>
-        public static readonly string LobbySceneName = "Lobby";
+        public static readonly string LobbySceneName = "LobbyScene";
 
         /// <summary>
         /// Current sage of the name

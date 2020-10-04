@@ -22,7 +22,7 @@ namespace PropHunt.Client.Systems
                 PostUpdateCommands.DestroyEntity(entity);
                 UnityEngine.Debug.Log($"We received a command - Load Scene {cmd.loadScene} - Unload Scene { cmd.unloadScene }");
                 Entity sceneLoaderSingleton = PostUpdateCommands.CreateEntity();
-                PostUpdateCommands.SetComponent(sceneLoaderSingleton, new SceneLoaderSystem.SceneLoadInfo {
+                PostUpdateCommands.AddComponent(sceneLoaderSingleton, new SceneLoaderSystem.SceneLoadInfo {
                     sceneToLoad = cmd.loadScene,
                     sceneToUnload = cmd.unloadScene
                 });

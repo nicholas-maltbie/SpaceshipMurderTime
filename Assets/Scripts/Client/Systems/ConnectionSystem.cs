@@ -20,7 +20,6 @@ namespace PropHunt.Client.Systems
                 EntityManager.CreateEntity(typeof(InitClientGameComponent));
                 ConnectionSystem.connectRequested = false;
                 // Load lobby state when connecting
-                string currentScene = GetSingleton<GameStateSystem.GameState>().loadedScene.ToString().Trim();
                 Entity sceneLoaderSingleton = PostUpdateCommands.CreateEntity();
                 PostUpdateCommands.SetComponent(sceneLoaderSingleton, new SceneLoaderSystem.SceneLoadInfo {
                     sceneToLoad = GameStateSystem.LobbySceneName

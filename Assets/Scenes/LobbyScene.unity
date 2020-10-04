@@ -600,7 +600,7 @@ GameObject:
   - component: {fileID: 1085592881}
   - component: {fileID: 1085592882}
   m_Layer: 0
-  m_Name: SpawnPoints (1)
+  m_Name: SpawnPoints
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

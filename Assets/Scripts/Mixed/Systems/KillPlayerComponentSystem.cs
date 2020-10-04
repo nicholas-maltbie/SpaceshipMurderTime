@@ -214,6 +214,11 @@ namespace PropHunt.Mixed.Systems
 
     public class DebugPlayerKill : ComponentSystem
     {
+        protected override void OnCreate()
+        {
+            RequireSingletonForUpdate<NetworkIdComponent>();
+        }
+
         protected override void OnUpdate()
         {
             var group = World.GetExistingSystem<GhostPredictionSystemGroup>();

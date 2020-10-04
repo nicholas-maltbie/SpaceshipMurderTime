@@ -65,13 +65,13 @@ namespace PropHunt.Mixed.Systems
         {
             Entities.ForEach((Entity entity, SubScene subScene) =>
             {
-                if (!scenesToLoad.ContainsKey(subScene.SceneName))
+                if (!scenesToLoad.ContainsKey(subScene.SceneAsset.name))
                 {
                     // Ignore subscene if it is not in the dictionary
                     return;
                 }
                 LoadState desiredState;
-                if (!scenesToLoad.TryRemove(subScene.SceneName, out desiredState))
+                if (!scenesToLoad.TryRemove(subScene.SceneAsset.name, out desiredState))
                 {
                     // return in failure state
                     return;

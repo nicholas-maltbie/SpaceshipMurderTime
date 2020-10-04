@@ -68,7 +68,6 @@ namespace PropHunt.Server.Systems
                 float verticalRotation = ((Quaternion)spawnRotation).eulerAngles.y;
                 PostUpdateCommands.SetComponent(player, new Translation { Value = spawnTranslation });
                 PostUpdateCommands.SetComponent(player, new Rotation { Value = spawnRotation });
-                PostUpdateCommands.SetComponent(player, new PlayerView { pitch = 0, yaw = verticalRotation });
 
                 PostUpdateCommands.AddBuffer<PlayerInput>(player);
                 PostUpdateCommands.SetComponent(reqSrc.SourceConnection, new CommandTargetComponent { targetEntity = player });

@@ -13,7 +13,8 @@ using System;
 using PropHunt.Mixed.Commands;
 using System.Linq;
 using Unity.Mathematics;
-
+using PropHunt.Server.Systems;
+using PropHunt.Authoring;
 
 namespace PropHunt.Mixed.Systems
 {
@@ -56,7 +57,6 @@ namespace PropHunt.Mixed.Systems
     /// 
     /// </summary>
     [UpdateInGroup(typeof(KillPlayerGroup))]
-
     public class ApplyKillCommand : SystemBase
     {
         protected override void OnUpdate()
@@ -79,84 +79,81 @@ namespace PropHunt.Mixed.Systems
     /// 
     [UpdateAfter(typeof(ApplyKillCommand))]
     [UpdateBefore(typeof(KillCommandCleanup))]
-    [UpdateInGroup(typeof(ServerSimulationSystemGroup))]
     public class UpdatePlayerState : ComponentSystem
     {
-        protected int GetPlayerGhostIndex(DynamicBuffer<GhostPrefabBuffer> ghostPrefabBuffers)
-        {
-            for (int i = 0; i < ghostPrefabBuffers.Length; i++)
-            {
-                var found = ghostPrefabBuffers[i].Value;
-                // The prefab with a PlayerId will be returned
-                if (EntityManager.HasComponent<PlayerId>(found))
-                {
-                    return i;
-                }
-            }
-            return -1;
-        }
         protected override void OnUpdate()
         {
             var ecb = EntityManager.World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().CreateCommandBuffer();
 
-            Entities.ForEach(
-                (Entity entity, ref PlayerAliveState state, ref Kill kill, ref ReceiveRpcCommandRequestComponent reqSrc) =>
+            bool isServer = World.GetExistingSystem<ServerSimulationSystemGroup>() != null;
+
+            Entities.ForEach((
+                Entity entity,
+                ref PlayerAliveState state,
+                ref Kill kill,
+                ref Translation translation,
+                ref Rotation rotation,
+                ref PlayerView view,
+                ref PlayerId playerId) =>
+            {
+                if (state.isAlive == false)
                 {
-                    if (state.isAlive == false)
+                    if (!isServer)
                     {
-                        // HideChildren(entity, ecb);
-                        int connectionId = EntityManager.GetComponentData<NetworkIdComponent>(reqSrc.SourceConnection).Value;
-                        // Setup the character avatar
-                        Entity ghostCollection = GetSingletonEntity<GhostPrefabCollectionComponent>();
-                        DynamicBuffer<GhostPrefabBuffer> ghostPrefabs = EntityManager.GetBuffer<GhostPrefabBuffer>(ghostCollection);
-                        int ghostId = GetPlayerGhostIndex(ghostPrefabs);
-                        var prefab = EntityManager.GetBuffer<GhostPrefabBuffer>(ghostCollection)[ghostId].Value;
-                        var player = PostUpdateCommands.Instantiate(prefab);
-                        PostUpdateCommands.SetComponent(player, new PlayerId { playerId = connectionId });
-                        PostUpdateCommands.SetComponent(player, new Translation { Value = new float3(0, 5, 0) });
-                        PostUpdateCommands.SetComponent(player, new GhostOwnerComponent { NetworkId = connectionId });
-
-                        PostUpdateCommands.AddBuffer<PlayerInput>(player);
-                        PostUpdateCommands.SetComponent(reqSrc.SourceConnection, new CommandTargetComponent { targetEntity = player });
-
-                        PostUpdateCommands.DestroyEntity(entity);
+                        // Send command to server to spawn new avatar
+                        int localPlayerId = GetSingleton<NetworkIdComponent>().Value;
+                        // Reset CommandTargetComponent if losing local player
+                        if (playerId.playerId == localPlayerId)
+                        {
+                            Entity commandTarget = GetSingletonEntity<CommandTargetComponent>();
+                            PostUpdateCommands.SetComponent(commandTarget, new CommandTargetComponent { targetEntity = Entity.Null });
+                            // Send request to spawn new avatar
+                            var req = PostUpdateCommands.CreateEntity();
+                            PostUpdateCommands.AddComponent<SpawnAvatarCommand>(req);
+                            PostUpdateCommands.SetComponent(req, new SpawnAvatarCommand {
+                                avatarId = PlayerPrefabComponent.GhostCharacterId,
+                                position = translation.Value,
+                                attitude = rotation.Value,
+                            });
+                            PostUpdateCommands.AddComponent(req, new SendRpcCommandRequestComponent { TargetConnection = GetSingletonEntity<NetworkStreamInGame>() });
+                        }
                     }
                 }
-            );
+            });
         }
 
-        private void HideChildren(Entity entity, EntityCommandBuffer ecb)
-        {
-            if (EntityManager.HasComponent<Child>(entity))
-            {
-                foreach (var child in EntityManager.GetBuffer<Child>(entity))
-                {
-                    HideChildren(child.Value, ecb);
-                }
-            }
-            if (EntityManager.HasComponent<RenderMesh>(entity))
-            {
-                PostUpdateCommands.RemoveComponent<UpdateMaterialComponentData>(entity);
-                var renderMesh = EntityManager.GetSharedComponentData<RenderMesh>(entity);
-                var material = SharedMaterials.Instance.GetMaterialById(3);
+        // private void HideChildren(Entity entity, EntityCommandBuffer ecb)
+        // {
+        //     if (EntityManager.HasComponent<Child>(entity))
+        //     {
+        //         foreach (var child in EntityManager.GetBuffer<Child>(entity))
+        //         {
+        //             HideChildren(child.Value, ecb);
+        //         }
+        //     }
+        //     if (EntityManager.HasComponent<RenderMesh>(entity))
+        //     {
+        //         PostUpdateCommands.RemoveComponent<UpdateMaterialComponentData>(entity);
+        //         var renderMesh = EntityManager.GetSharedComponentData<RenderMesh>(entity);
+        //         var material = SharedMaterials.Instance.GetMaterialById(3);
 
-                // Set the material.
-                ecb.SetSharedComponent(entity, new RenderMesh
-                {
-                    mesh = renderMesh.mesh,
-                    material = material,
-                    subMesh = renderMesh.subMesh,
-                    layer = renderMesh.layer,
-                    castShadows = renderMesh.castShadows,
-                    needMotionVectorPass = renderMesh.needMotionVectorPass,
-                    receiveShadows = renderMesh.receiveShadows,
-                });
-            }
-            if (EntityManager.HasComponent<PhysicsCollider>(entity))
-            {
+        //         // Set the material.
+        //         ecb.SetSharedComponent(entity, new RenderMesh
+        //         {
+        //             mesh = renderMesh.mesh,
+        //             material = material,
+        //             subMesh = renderMesh.subMesh,
+        //             layer = renderMesh.layer,
+        //             castShadows = renderMesh.castShadows,
+        //             needMotionVectorPass = renderMesh.needMotionVectorPass,
+        //             receiveShadows = renderMesh.receiveShadows,
+        //         });
+        //     }
+        //     if (EntityManager.HasComponent<PhysicsCollider>(entity))
+        //     {
 
-            }
-        }
+        //     }
+        // }
     }
 
     [UpdateInGroup(typeof(ClientSimulationSystemGroup))]

@@ -1,19 +1,10 @@
 ﻿using Unity.Entities;
 using Unity.NetCode;
 using Unity.Jobs;
-using Unity.Physics;
 using Unity.Transforms;
 using PropHunt.Mixed.Components;
-using Unity.Physics.Extensions;
-using System.ComponentModel;
 using SpaceshipMurderTime;
-using Unity.Rendering;
-using System.Drawing;
-using System;
 using PropHunt.Mixed.Commands;
-using System.Linq;
-using Unity.Mathematics;
-using PropHunt.Server.Systems;
 using PropHunt.Authoring;
 
 namespace PropHunt.Mixed.Systems

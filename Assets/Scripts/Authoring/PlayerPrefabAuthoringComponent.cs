@@ -9,6 +9,11 @@ namespace PropHunt.Authoring
     public struct PlayerPrefabComponent : IComponentData
     {
         /// <summary>
+        /// Dead player id code
+        /// </summary>
+        public static readonly int DeadPlayerId = 1349085;
+
+        /// <summary>
         /// ID for player character
         /// </summary>
         public static readonly int AliveCharacterId = 8672460;

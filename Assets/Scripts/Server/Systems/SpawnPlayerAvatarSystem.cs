@@ -72,6 +72,12 @@ namespace PropHunt.Server.Systems
                 PostUpdateCommands.SetComponent(player, new Rotation { Value = req.attitude });
                 PostUpdateCommands.SetComponent(player, new GhostOwnerComponent { NetworkId = connectionId });
 
+                int deadPlayerId = GetPlayerGhostIndex(ghostPrefabs, PlayerPrefabComponent.DeadPlayerId, EntityManager);
+                var dedPrefab = EntityManager.GetBuffer<GhostPrefabBuffer>(ghostCollection)[deadPlayerId].Value;
+                var dedPlayer = PostUpdateCommands.Instantiate(dedPrefab);
+                PostUpdateCommands.SetComponent(dedPrefab, new Translation { Value = req.position });
+                PostUpdateCommands.SetComponent(dedPrefab, new Rotation { Value = req.attitude });
+
                 PostUpdateCommands.AddBuffer<PlayerInput>(player);
                 PostUpdateCommands.SetComponent(reqSrc.SourceConnection, new CommandTargetComponent { targetEntity = player });
 

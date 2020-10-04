@@ -20,7 +20,7 @@ namespace PropHunt.Client.Systems
             {
                 PostUpdateCommands.AddComponent<NetworkStreamInGame>(ent);
                 var req = PostUpdateCommands.CreateEntity();
-                PostUpdateCommands.AddComponent<JoinGameRequest>(req);
+                PostUpdateCommands.AddComponent(req, new JoinGameRequest { username = "Success!"});
                 PostUpdateCommands.AddComponent(req, new SendRpcCommandRequestComponent { TargetConnection = ent });
             });
 

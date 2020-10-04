@@ -1,5 +1,6 @@
 using AOT;
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.NetCode;
 using Unity.Networking.Transport;
@@ -13,6 +14,8 @@ namespace PropHunt.Mixed.Commands
     [BurstCompile]
     public struct JoinGameRequest : IComponentData, IRpcCommandSerializer<JoinGameRequest>
     {
+        public FixedString64 username;
+
         [BurstCompile]
         [MonoPInvokeCallback(typeof(RpcExecutor.ExecuteDelegate))]
         private static void InvokeExecute(ref RpcExecutor.Parameters parameters)

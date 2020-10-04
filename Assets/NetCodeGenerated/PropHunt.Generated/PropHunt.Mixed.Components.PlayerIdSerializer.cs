@@ -21,7 +21,7 @@ namespace PropHunt.Generated
         {
             State = new GhostComponentSerializer.State
             {
-                GhostFieldsHash = 14767913548786401661,
+                GhostFieldsHash = 2596386635959590070,
                 ExcludeFromComponentCollectionHash = 0,
                 ComponentType = ComponentType.ReadWrite<PropHunt.Mixed.Components.PlayerId>(),
                 ComponentSize = UnsafeUtility.SizeOf<PropHunt.Mixed.Components.PlayerId>(),
@@ -53,8 +53,9 @@ namespace PropHunt.Generated
         public struct Snapshot
         {
             public int playerId;
+            public FixedString64 playerName;
         }
-        public const int ChangeMaskBits = 1;
+        public const int ChangeMaskBits = 2;
         [BurstCompile]
         [MonoPInvokeCallback(typeof(GhostComponentSerializer.CopyToFromSnapshotDelegate))]
         private static void CopyToSnapshot(IntPtr stateData, IntPtr snapshotData, int snapshotOffset, int snapshotStride, IntPtr componentData, int componentStride, int count)
@@ -65,6 +66,7 @@ namespace PropHunt.Generated
                 ref var component = ref GhostComponentSerializer.TypeCast<PropHunt.Mixed.Components.PlayerId>(componentData, componentStride*i);
                 ref var serializerState = ref GhostComponentSerializer.TypeCast<GhostSerializerState>(stateData, 0);
                 snapshot.playerId = (int) component.playerId;
+                snapshot.playerName = component.playerName;
             }
         }
         [BurstCompile]
@@ -81,6 +83,7 @@ namespace PropHunt.Generated
                 var deserializerState = GhostComponentSerializer.TypeCast<GhostDeserializerState>(stateData, 0);
                 deserializerState.SnapshotTick = snapshotInterpolationData.Tick;
                 component.playerId = (int) snapshotBefore.playerId;
+                component.playerName = snapshotBefore.playerName;
             }
         }
         [BurstCompile]
@@ -90,6 +93,7 @@ namespace PropHunt.Generated
             ref var component = ref GhostComponentSerializer.TypeCast<PropHunt.Mixed.Components.PlayerId>(componentData, 0);
             ref var backup = ref GhostComponentSerializer.TypeCast<PropHunt.Mixed.Components.PlayerId>(backupData, 0);
             component.playerId = backup.playerId;
+            component.playerName = backup.playerName;
         }
 
         [BurstCompile]
@@ -109,7 +113,8 @@ namespace PropHunt.Generated
             ref var baseline = ref GhostComponentSerializer.TypeCast<Snapshot>(baselineData);
             uint changeMask;
             changeMask = (snapshot.playerId != baseline.playerId) ? 1u : 0;
-            GhostComponentSerializer.CopyToChangeMask(bits, changeMask, startOffset, 1);
+            changeMask |= snapshot.playerName.Equals(baseline.playerName) ? 0 : (1u<<1);
+            GhostComponentSerializer.CopyToChangeMask(bits, changeMask, startOffset, 2);
         }
         [BurstCompile]
         [MonoPInvokeCallback(typeof(GhostComponentSerializer.SerializeDelegate))]
@@ -120,6 +125,8 @@ namespace PropHunt.Generated
             uint changeMask = GhostComponentSerializer.CopyFromChangeMask(changeMaskData, startOffset, ChangeMaskBits);
             if ((changeMask & (1 << 0)) != 0)
                 writer.WritePackedIntDelta(snapshot.playerId, baseline.playerId, compressionModel);
+            if ((changeMask & (1 << 1)) != 0)
+                writer.WritePackedFixedString64Delta(snapshot.playerName, baseline.playerName, compressionModel);
         }
         [BurstCompile]
         [MonoPInvokeCallback(typeof(GhostComponentSerializer.DeserializeDelegate))]
@@ -132,6 +139,10 @@ namespace PropHunt.Generated
                 snapshot.playerId = reader.ReadPackedIntDelta(baseline.playerId, compressionModel);
             else
                 snapshot.playerId = baseline.playerId;
+            if ((changeMask & (1 << 1)) != 0)
+                snapshot.playerName = reader.ReadPackedFixedString64Delta(baseline.playerName, compressionModel);
+            else
+                snapshot.playerName = baseline.playerName;
         }
         #if UNITY_EDITOR || DEVELOPMENT_BUILD
         [BurstCompile]

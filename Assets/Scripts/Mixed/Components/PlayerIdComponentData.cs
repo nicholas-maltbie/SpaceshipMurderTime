@@ -1,4 +1,5 @@
-﻿using Unity.Entities;
+﻿using Unity.Collections;
+using Unity.Entities;
 using Unity.NetCode;
 
 namespace PropHunt.Mixed.Components
@@ -15,6 +16,12 @@ namespace PropHunt.Mixed.Components
         /// </summary>
         [GhostField]
         public int playerId;
+
+        /// <summary>
+        /// Name identifying who is controlling the player
+        /// </summary>
+        [GhostField]
+        public FixedString64 playerName;
     }
 
 }

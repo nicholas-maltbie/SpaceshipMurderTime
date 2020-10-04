@@ -60,7 +60,7 @@ namespace PropHunt.Server.Systems
                 int ghostId = GetPlayerGhostIndex(ghostPrefabs);
                 var prefab = EntityManager.GetBuffer<GhostPrefabBuffer>(ghostCollection)[ghostId].Value;
                 var player = PostUpdateCommands.Instantiate(prefab);
-                PostUpdateCommands.SetComponent(player, new PlayerId { playerId = connectionId });
+                PostUpdateCommands.SetComponent(player, new PlayerId { playerId = connectionId, playerName = req.username });
                 PostUpdateCommands.SetComponent(player, new GhostOwnerComponent { NetworkId = connectionId });
 
                 float3 spawnTranslation = spawnPoints[connectionId % spawnPoints.Length].position;

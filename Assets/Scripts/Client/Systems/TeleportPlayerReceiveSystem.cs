@@ -4,6 +4,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.NetCode;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace PropHunt.Client.Systems
 {
@@ -40,12 +41,15 @@ namespace PropHunt.Client.Systems
                     Entity Entity,
                     ref PlayerId playerId,
                     ref Translation translation,
-                    ref Rotation rotation) =>
+                    ref Rotation rotation,
+                    ref PlayerView pv) =>
                 {
                     if (playerId.playerId == localPlayerId)
                     {
                         translation.Value = targetPosition;
                         rotation.Value = targetRotation;
+                        pv.pitch = 0;
+                        pv.yaw = ((Quaternion) rotation.Value).eulerAngles.y;
                     }
                 });
             }

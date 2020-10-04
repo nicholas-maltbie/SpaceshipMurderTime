@@ -1,12 +1,13 @@
-using Unity.Collections;
 using Unity.Entities;
-using Unity.Scenes;
 using PropHunt.Mixed.Components;
 using Unity.NetCode;
 using Unity.Transforms;
 using Unity.Mathematics;
-using System.Numerics;
 using PropHunt.Mixed.Commands;
+using PropHunt.Server.Systems;
+using Unity.Collections;
+using PropHunt.SceneManagement;
+using Unity.Scenes;
 
 namespace PropHunt.Mixed.Systems
 {
@@ -14,36 +15,44 @@ namespace PropHunt.Mixed.Systems
     /// System to teleport all players to spawn zones
     /// </summary>
     [UpdateInGroup(typeof(ServerSimulationSystemGroup))]
+    [UpdateAfter(typeof(ServerStartGameSystem))]
     public class TeleportPlayersToSpawn : ComponentSystem
     {
-        private float elapsed = 0;
+        /// <summary>
+        /// Scene system to manage scenes
+        /// </summary>
+        private SceneSystem sceneSystem;
+        
         /// <summary>
         /// Request to teleport all players to spawn
         /// </summary>
         public struct TeleportPlayerTimer : IComponentData
         {
             /// <summary>
-            /// delay in seconds to teleport players to spawn zones
+            /// Target scene to wait for loaded
             /// </summary>
-            public float delay;
+            public FixedString64 targetScene;
         }
 
         protected override void OnCreate()
         {
             RequireSingletonForUpdate<TeleportPlayerTimer>();
+            this.sceneSystem = World.GetOrCreateSystem<SceneSystem>();
         }
 
         protected override void OnUpdate()
         {
-            this.elapsed += Time.DeltaTime;
             TeleportPlayerTimer request = GetSingleton<TeleportPlayerTimer>();
-
-            if (this.elapsed < request.delay)
+            string targetScene = request.targetScene.ToString().Trim();
+            // UnityEngine.Debug.Log($"Current scene loaded state: {SubSceneReferences.Instance.IsSceneFinished(targetScene, this.sceneSystem)}");
+            if (!SubSceneReferences.Instance.ContainsScene(targetScene))
+            {
+                PostUpdateCommands.DestroyEntity(GetSingletonEntity<TeleportPlayerTimer>());
+            }
+            if (!SubSceneReferences.Instance.IsSceneFinished(targetScene, this.sceneSystem))
             {
                 return;
             }
-
-            this.elapsed = 0;
             PostUpdateCommands.DestroyEntity(GetSingletonEntity<TeleportPlayerTimer>());
 
             var spawnZoneEntity = GetSingletonEntity<SpawnZone>();
@@ -59,8 +68,7 @@ namespace PropHunt.Mixed.Systems
                 quaternion spawnRotation = spawnPoints[playerId.playerId % spawnPoints.Length].attitude;
                 translation.Value = spawnTranslation;
                 rotation.Value = spawnRotation;
-                
-                UnityEngine.Debug.Log($"Sending command to teleport player {playerId.playerId} to position {spawnTranslation} and rotation {spawnRotation}");
+
                 var teleportPlayerRequest = PostUpdateCommands.CreateEntity();
                 PostUpdateCommands.AddComponent(teleportPlayerRequest, new TeleportPlayerCommand { position = spawnTranslation, attitude = spawnRotation, playerId = playerId.playerId});
                 PostUpdateCommands.AddComponent(teleportPlayerRequest, new SendRpcCommandRequestComponent());

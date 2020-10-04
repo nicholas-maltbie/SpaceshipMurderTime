@@ -7,7 +7,7 @@ using Unity.NetCode;
 namespace PropHunt.Server.Systems
 {
     [UpdateInGroup(typeof(ServerSimulationSystemGroup))]
-    public class ServerForwardLoadGameRequest : ComponentSystem
+    public class ServerStartGameSystem : ComponentSystem
     {
         protected override void OnCreate()
         {
@@ -31,7 +31,7 @@ namespace PropHunt.Server.Systems
                     sceneToUnload = GameStateSystem.LobbySceneName
                 });
                 Entity teleportPlayers = PostUpdateCommands.CreateEntity();
-                PostUpdateCommands.AddComponent(teleportPlayers, new TeleportPlayersToSpawn.TeleportPlayerTimer { delay = 0.1f });
+                PostUpdateCommands.AddComponent(teleportPlayers, new TeleportPlayersToSpawn.TeleportPlayerTimer { targetScene = selectedMap });
             });
         }
     }

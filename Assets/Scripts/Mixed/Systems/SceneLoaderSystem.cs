@@ -58,8 +58,7 @@ namespace PropHunt.Mixed.Systems
 
             if (toLoad.Length > 0 && SubSceneReferences.Instance.ContainsScene(toLoad))
             {
-                SubScene scene = SubSceneReferences.Instance.GetSceneByName(toLoad);
-                sceneSystem.LoadSceneAsync(scene.SceneGUID);
+                SubSceneReferences.Instance.LoadScene(toLoad, this.sceneSystem);
                 GameFlow flow = toLoad == GameStateSystem.LobbySceneName ? GameFlow.Lobby : GameFlow.InGame;
                 Entity entity = GetSingletonEntity<GameStateSystem.GameState>();
                 PostUpdateCommands.SetComponent(entity, new GameStateSystem.GameState
@@ -70,8 +69,7 @@ namespace PropHunt.Mixed.Systems
             }
             if (toUnload.Length > 0 && SubSceneReferences.Instance.ContainsScene(toUnload))
             {
-                SubScene scene = SubSceneReferences.Instance.GetSceneByName(toUnload);
-                sceneSystem.UnloadScene(scene.SceneGUID);
+                SubSceneReferences.Instance.UnloadScene(toUnload, this.sceneSystem);
             }
             
         }

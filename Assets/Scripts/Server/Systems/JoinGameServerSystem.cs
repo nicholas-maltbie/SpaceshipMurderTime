@@ -25,6 +25,7 @@ namespace PropHunt.Server.Systems
         protected override void OnCreate()
         {
             RequireSingletonForUpdate<GhostPrefabCollectionComponent>();
+            RequireSingletonForUpdate<SpawnZone>();
         }
 
         protected int GetPlayerGhostIndex(DynamicBuffer<GhostPrefabBuffer> ghostPrefabBuffers)
@@ -43,6 +44,9 @@ namespace PropHunt.Server.Systems
 
         protected override void OnUpdate()
         {
+            var spawnZoneEntity = GetSingletonEntity<SpawnZone>();
+            DynamicBuffer<SpawnPoint> spawnPoints = EntityManager.GetBuffer<SpawnPoint>(spawnZoneEntity);
+
             Entities.WithNone<SendRpcCommandRequestComponent>().ForEach((Entity reqEnt, ref JoinGameRequest req, ref ReceiveRpcCommandRequestComponent reqSrc) =>
             {
                 int connectionId = EntityManager.GetComponentData<NetworkIdComponent>(reqSrc.SourceConnection).Value;
@@ -57,8 +61,13 @@ namespace PropHunt.Server.Systems
                 var prefab = EntityManager.GetBuffer<GhostPrefabBuffer>(ghostCollection)[ghostId].Value;
                 var player = PostUpdateCommands.Instantiate(prefab);
                 PostUpdateCommands.SetComponent(player, new PlayerId { playerId = connectionId });
-                PostUpdateCommands.SetComponent(player, new Translation { Value = new float3(0, 5, 0) });
                 PostUpdateCommands.SetComponent(player, new GhostOwnerComponent { NetworkId = connectionId });
+
+                float3 spawnTranslation = spawnPoints[connectionId % spawnPoints.Length].position;
+                quaternion spawnRotation = spawnPoints[connectionId % spawnPoints.Length].attitude;
+                float verticalRotation = ((Quaternion)spawnRotation).eulerAngles.y;
+                PostUpdateCommands.SetComponent(player, new Translation { Value = spawnTranslation });
+                PostUpdateCommands.SetComponent(player, new Rotation { Value = spawnRotation });
 
                 PostUpdateCommands.AddBuffer<PlayerInput>(player);
                 PostUpdateCommands.SetComponent(reqSrc.SourceConnection, new CommandTargetComponent { targetEntity = player });

@@ -3,6 +3,7 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.NetCode;
 using UnityEngine;
+using static PropHunt.Mixed.Systems.GameStateSystem;
 
 namespace PropHunt.Client.Systems
 {
@@ -37,19 +38,34 @@ namespace PropHunt.Client.Systems
         public static readonly string MainMenuScreen = "MainMenuScreen";
 
         /// <summary>
+        /// Heads up display when in lobby
+        /// </summary>
+        public static readonly string LobbyHUD = "LobbyHUD";
+
+        /// <summary>
+        /// Menu screen to show player while they are in lobby
+        /// </summary>
+        public static readonly string LobbyMenu = "LobbyMenu";
+
+        /// <summary>
         /// Screen with in game menu options
         /// </summary>
-        public static readonly string InGameMenuScreen = "InGameMenu";
+        public static readonly string InGameMenu = "InGameMenu";
 
         /// <summary>
         /// Screen with in game heads up display name
         /// </summary>
-        public static readonly string HUDScreen = "InGameHUD";
+        public static readonly string InGameHUD = "InGameHUD";
 
         /// <summary>
         /// Was this previously connected last frame
         /// </summary>
         private bool previouslyConnected;
+
+        /// <summary>
+        /// Game flow stages
+        /// </summary>
+        private GameFlow previousGameFlow;
 
         protected override void OnCreate()
         {
@@ -68,7 +84,7 @@ namespace PropHunt.Client.Systems
         /// </summary>
         private void HandleScreenChangeEvent(object sender, ScreenChangeEventArgs eventArgs)
         {
-            if (eventArgs.newScreen == MenuManagerSystem.HUDScreen)
+            if (eventArgs.newScreen == MenuManagerSystem.InGameHUD)
             {
                 MenuManagerSystem.movementState = LockedInputState.ALLOW;
             }
@@ -76,6 +92,8 @@ namespace PropHunt.Client.Systems
 
         protected override void OnUpdate()
         {
+            GameState gameState = GetSingleton<GameState>();
+
             bool currentlyConnected = ConnectionSystem.IsConnected;
 
             // This should only act while in game
@@ -92,12 +110,12 @@ namespace PropHunt.Client.Systems
                     if (MenuManagerSystem.movementState == LockedInputState.ALLOW)
                     {
                         MenuManagerSystem.movementState = LockedInputState.DENY;
-                        UIManager.RequestNewScreen(this, MenuManagerSystem.InGameMenuScreen);
+                        UIManager.RequestNewScreen(this, gameState.stage == GameFlow.InGame ? MenuManagerSystem.InGameMenu : MenuManagerSystem.LobbyMenu);
                     }
                     else if (movementState == LockedInputState.DENY)
                     {
                         MenuManagerSystem.movementState = LockedInputState.ALLOW;
-                        UIManager.RequestNewScreen(this, MenuManagerSystem.HUDScreen);
+                        UIManager.RequestNewScreen(this, gameState.stage == GameFlow.InGame ? MenuManagerSystem.InGameHUD : MenuManagerSystem.LobbyHUD);
                     }
                 }
 
@@ -122,9 +140,18 @@ namespace PropHunt.Client.Systems
             // if this changed from not connected to connected, open in game menu
             if (currentlyConnected && !this.previouslyConnected)
             {
-                UIManager.RequestNewScreen(this, MenuManagerSystem.HUDScreen);
+                UIManager.RequestNewScreen(this, gameState.stage == GameFlow.InGame ? MenuManagerSystem.InGameHUD : MenuManagerSystem.LobbyHUD);
+                Cursor.lockState = CursorLockMode.Confined;
+                MenuManagerSystem.movementState = LockedInputState.ALLOW;
+            }
+            if (currentlyConnected && this.previousGameFlow != gameState.stage)
+            {
+                UIManager.RequestNewScreen(this, gameState.stage == GameFlow.InGame ? MenuManagerSystem.InGameHUD : MenuManagerSystem.LobbyHUD);
+                Cursor.lockState = CursorLockMode.Confined;
+                MenuManagerSystem.movementState = LockedInputState.ALLOW;
             }
 
+            this.previousGameFlow = gameState.stage;
             this.previouslyConnected = currentlyConnected;
         }
     }

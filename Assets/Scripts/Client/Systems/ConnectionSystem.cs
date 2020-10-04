@@ -1,3 +1,4 @@
+using PropHunt.Mixed.Systems;
 using Unity.Entities;
 using Unity.NetCode;
 using Unity.Scenes;
@@ -50,6 +51,18 @@ namespace PropHunt.Client.Systems
             {
                 EntityManager.CreateEntity(typeof(InitClientGameComponent));
                 ConnectionSystem.connectRequested = false;
+                // Load lobby state when connecting
+                string currentScene = GetSingleton<GameStateSystem.GameState>().loadedScene.ToString().Trim();
+                if (currentScene == GameStateSystem.LobbySceneName)
+                {
+                    currentScene = "";
+                }
+                Entity sceneLoaderSingleton = PostUpdateCommands.CreateEntity();
+                PostUpdateCommands.AddComponent(sceneLoaderSingleton, new SceneLoaderSystem.SceneLoadInfo
+                {
+                    sceneToUnload = currentScene,
+                    sceneToLoad = GameStateSystem.LobbySceneName,
+                });
             }
         }
     }
@@ -111,6 +124,13 @@ namespace PropHunt.Client.Systems
                 Entities.ForEach((Entity ent, ref NetworkStreamConnection conn) =>
                 {
                     EntityManager.AddComponent(ent, typeof(NetworkStreamRequestDisconnect));
+                    // Unload current scene when disconnecting
+                    // Works when you don't unload current scene???
+                    // string currentScene = GetSingleton<GameStateSystem.GameState>().loadedScene.ToString().Trim();
+                    // Entity sceneLoaderSingleton = PostUpdateCommands.CreateEntity();
+                    // PostUpdateCommands.AddComponent(sceneLoaderSingleton, new SceneLoaderSystem.SceneLoadInfo {
+                    //     sceneToUnload = currentScene
+                    // });
                     EntityManager.CreateEntity(ComponentType.ReadOnly(typeof(ClearClientGhostEntities.ClientClearGhosts)));
                 });
                 ConnectionSystem.disconnectRequested = false;

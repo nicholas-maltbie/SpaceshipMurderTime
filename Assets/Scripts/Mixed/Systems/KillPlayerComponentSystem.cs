@@ -12,6 +12,8 @@ using System.Drawing;
 using System;
 using PropHunt.Mixed.Commands;
 using System.Linq;
+using Unity.Mathematics;
+
 
 namespace PropHunt.Mixed.Systems
 {
@@ -74,21 +76,50 @@ namespace PropHunt.Mixed.Systems
     /// <summary>
     /// System group for resolving push forces applied to dynamic objects in the scene
     /// </summary>
+    /// 
     [UpdateAfter(typeof(ApplyKillCommand))]
     [UpdateBefore(typeof(KillCommandCleanup))]
-    [UpdateInGroup(typeof(KillPlayerGroup))]
+    [UpdateInGroup(typeof(ServerSimulationSystemGroup))]
     public class UpdatePlayerState : ComponentSystem
     {
+        protected int GetPlayerGhostIndex(DynamicBuffer<GhostPrefabBuffer> ghostPrefabBuffers)
+        {
+            for (int i = 0; i < ghostPrefabBuffers.Length; i++)
+            {
+                var found = ghostPrefabBuffers[i].Value;
+                // The prefab with a PlayerId will be returned
+                if (EntityManager.HasComponent<PlayerId>(found))
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
         protected override void OnUpdate()
         {
             var ecb = EntityManager.World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>().CreateCommandBuffer();
 
             Entities.ForEach(
-                (Entity entity, ref PlayerAliveState state, ref Kill kill) =>
+                (Entity entity, ref PlayerAliveState state, ref Kill kill, ref ReceiveRpcCommandRequestComponent reqSrc) =>
                 {
                     if (state.isAlive == false)
                     {
-                        HideChildren(entity, ecb);
+                        // HideChildren(entity, ecb);
+                        int connectionId = EntityManager.GetComponentData<NetworkIdComponent>(reqSrc.SourceConnection).Value;
+                        // Setup the character avatar
+                        Entity ghostCollection = GetSingletonEntity<GhostPrefabCollectionComponent>();
+                        DynamicBuffer<GhostPrefabBuffer> ghostPrefabs = EntityManager.GetBuffer<GhostPrefabBuffer>(ghostCollection);
+                        int ghostId = GetPlayerGhostIndex(ghostPrefabs);
+                        var prefab = EntityManager.GetBuffer<GhostPrefabBuffer>(ghostCollection)[ghostId].Value;
+                        var player = PostUpdateCommands.Instantiate(prefab);
+                        PostUpdateCommands.SetComponent(player, new PlayerId { playerId = connectionId });
+                        PostUpdateCommands.SetComponent(player, new Translation { Value = new float3(0, 5, 0) });
+                        PostUpdateCommands.SetComponent(player, new GhostOwnerComponent { NetworkId = connectionId });
+
+                        PostUpdateCommands.AddBuffer<PlayerInput>(player);
+                        PostUpdateCommands.SetComponent(reqSrc.SourceConnection, new CommandTargetComponent { targetEntity = player });
+
+                        PostUpdateCommands.DestroyEntity(entity);
                     }
                 }
             );

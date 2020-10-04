@@ -1,3 +1,4 @@
+using PropHunt.Mixed.Systems;
 using Unity.Entities;
 using Unity.NetCode;
 using Unity.Scenes;
@@ -6,38 +7,6 @@ using static PropHunt.Game.ClientGameSystem;
 
 namespace PropHunt.Client.Systems
 {
-    /// <summary>
-    /// System to clear all ghosts on the client
-    /// </summary>
-    [UpdateBefore(typeof(ConnectionSystem))]
-    [UpdateInGroup(typeof(ClientSimulationSystemGroup))]
-    public class ClearClientGhostEntities : SystemBase
-    {
-        protected EndSimulationEntityCommandBufferSystem commandBufferSystem;
-
-        public struct ClientClearGhosts : IComponentData { };
-
-        protected override void OnCreate()
-        {
-            RequireSingletonForUpdate<ClientClearGhosts>();
-            this.commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
-        }
-
-        protected override void OnUpdate()
-        {
-            var buffer = this.commandBufferSystem.CreateCommandBuffer().AsParallelWriter();
-            // Also delete the existing ghost objects
-            Entities.ForEach((
-                Entity ent,
-                int entityInQueryIndex,
-                ref GhostComponent ghost) =>
-            {
-                buffer.DestroyEntity(entityInQueryIndex, ent);
-            }).ScheduleParallel();
-            this.commandBufferSystem.CreateCommandBuffer().DestroyEntity(GetSingletonEntity<ClientClearGhosts>());
-        }
-    }
-
     /// <summary>
     /// Secondary class to create connection object ot connect to the server
     /// </summary>
@@ -50,6 +19,12 @@ namespace PropHunt.Client.Systems
             {
                 EntityManager.CreateEntity(typeof(InitClientGameComponent));
                 ConnectionSystem.connectRequested = false;
+                // Load lobby state when connecting
+                string currentScene = GetSingleton<GameStateSystem.GameState>().loadedScene.ToString().Trim();
+                Entity sceneLoaderSingleton = PostUpdateCommands.CreateEntity();
+                PostUpdateCommands.SetComponent(sceneLoaderSingleton, new SceneLoaderSystem.SceneLoadInfo {
+                    sceneToLoad = GameStateSystem.LobbySceneName
+                });
             }
         }
     }
@@ -111,7 +86,12 @@ namespace PropHunt.Client.Systems
                 Entities.ForEach((Entity ent, ref NetworkStreamConnection conn) =>
                 {
                     EntityManager.AddComponent(ent, typeof(NetworkStreamRequestDisconnect));
-                    EntityManager.CreateEntity(ComponentType.ReadOnly(typeof(ClearClientGhostEntities.ClientClearGhosts)));
+                    // Unload current scene when disconnecting
+                    string currentScene = GetSingleton<GameStateSystem.GameState>().loadedScene.ToString().Trim();
+                    Entity sceneLoaderSingleton = PostUpdateCommands.CreateEntity();
+                    PostUpdateCommands.SetComponent(sceneLoaderSingleton, new SceneLoaderSystem.SceneLoadInfo {
+                        sceneToUnload = GameStateSystem.LobbySceneName
+                    });
                 });
                 ConnectionSystem.disconnectRequested = false;
             }

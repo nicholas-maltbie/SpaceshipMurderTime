@@ -8,7 +8,7 @@ namespace PropHunt.Mixed.Components
     /// <summary>
     /// Component for identifying and loading a scene
     /// </summary>
-    public struct SceneLoading : IComponentData
+    public struct SceneIdentifier : IComponentData
     {
         /// <summary>
         /// Name of the entity

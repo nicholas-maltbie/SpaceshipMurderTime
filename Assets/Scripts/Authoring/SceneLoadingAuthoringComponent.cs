@@ -9,7 +9,7 @@ namespace PropHunt.Authoring
     /// <summary>
     /// Mono Behaviour to create scene loading component
     /// </summary>
-    public class SceneLoadingAuthoringComponent : MonoBehaviour
+    public class SceneIdentifierAuthoringComponent : MonoBehaviour
     {
         /// <summary>
         /// Scene name
@@ -18,7 +18,7 @@ namespace PropHunt.Authoring
 
         public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
         {
-            dstManager.AddComponentData(entity, new SceneLoading()
+            dstManager.AddComponentData(entity, new SceneIdentifier()
             {
                 sceneName = new FixedString64(sceneName)
             });

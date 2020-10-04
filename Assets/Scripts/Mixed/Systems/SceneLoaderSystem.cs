@@ -1,95 +1,72 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using Unity.Collections;
 using Unity.Entities;
-using PropHunt.Mixed.Components;
-using static PropHunt.Mixed.Systems.SceneLoaderSystem;
 using Unity.Scenes;
+using PropHunt.Mixed.Components;
 
 namespace PropHunt.Mixed.Systems
 {
-    /// <summary>
-    /// Class to hold arguments for loading a new Scene
-    /// </summary>
-    public class RequestSceneLoadEventArgs : EventArgs
-    {
-        /// <summary>
-        /// String identifier for the new scene to load
-        /// </summary>
-        public string newScene { get; set; }
-
-        /// <summary>
-        /// Desired state to set
-        /// </summary>
-        public LoadState desiredState { get; set; }
-    }
-
     /// <summary>
     /// System to manage loading and unloading scenes
     /// </summary>
     public class SceneLoaderSystem : ComponentSystem
     {
         /// <summary>
-        /// Events for requesting a screen change
+        /// Information to load or unload a scene
         /// </summary>
-        public static event EventHandler<RequestSceneLoadEventArgs> RequestScreenChange;
+        public struct SceneLoadInfo : IComponentData
+        {
+            /// <summary>
+            /// Name of scene to load
+            /// </summary>
+            public FixedString64 sceneToLoad;
 
-        /// <summary>
-        /// Load state for requesting a change in scene
-        /// </summary>
-        public enum LoadState { Load, Unload }
-
-        /// <summary>
-        /// Dictionary of current commands to process organized by scene name
-        /// </summary>
-        private ConcurrentDictionary<string, LoadState> scenesToLoad;
+            /// <summary>
+            /// Name of scene to unload
+            /// </summary>
+            public FixedString64 sceneToUnload;
+        }
 
         protected override void OnCreate()
         {
-            this.scenesToLoad = new ConcurrentDictionary<string, LoadState>();
-            RequestScreenChange += this.HandleSceneChangeRequest;
-        }
-
-        /// <summary>
-        /// Handle a request to change scenes
-        /// </summary>
-        /// <param name="sender">sender of the event</param>
-        /// <param name="eventArgs">arguments of screen change</param>
-        public void HandleSceneChangeRequest(object sender, RequestSceneLoadEventArgs eventArgs)
-        {
-            if (this.scenesToLoad.TryAdd(eventArgs.newScene, eventArgs.desiredState))
-            {
-                UnityEngine.Debug.Log("Failed to properly load scene");
-            }
+            RequireSingletonForUpdate<SceneLoadInfo>();
         }
 
         protected override void OnUpdate()
         {
-            Entities.ForEach((Entity entity, SubScene subScene, ref SceneLoading loading) =>
+            Entity loaderSingleton = GetSingletonEntity<SceneLoadInfo>();
+            SceneLoadInfo loadInfo = EntityManager.GetComponentData<SceneLoadInfo>(loaderSingleton);
+            string toLoad = loadInfo.sceneToLoad.ToString().Trim();
+            string toUnload = loadInfo.sceneToLoad.ToString().Trim();
+            PostUpdateCommands.DestroyEntity(loaderSingleton);
+
+            Entities.ForEach((Entity entity, SubScene subScene, ref SceneIdentifier loading) =>
             {
                 string sceneName = loading.sceneName.ToString().Trim();
-                if (!scenesToLoad.ContainsKey(sceneName))
-                {
-                    // Ignore subscene if it is not in the dictionary
-                    return;
-                }
-                LoadState desiredState;
-                if (!scenesToLoad.TryRemove(sceneName, out desiredState))
-                {
-                    // return in failure state
-                    return;
-                }
 
-                if (desiredState == LoadState.Load && !EntityManager.HasComponent<RequestSceneLoaded>(entity))
+                // If we want to load it and it is not already loaded
+                if (toLoad == sceneName && !EntityManager.HasComponent<RequestSceneLoaded>(entity))
                 {
                     // Request scene unload
                     PostUpdateCommands.AddComponent<RequestSceneLoaded>(entity);
+                    // If loading lobby, ensure game state is updated
+                    Entity gameStateEntity = GetSingletonEntity<PropHunt.Mixed.Systems.GameStateSystem.GameState>();
+                    GameStateSystem.GameStage stage = sceneName == GameStateSystem.LobbySceneName ? GameStateSystem.GameStage.Lobby : GameStateSystem.GameStage.InGame;
+                    PostUpdateCommands.SetComponent(gameStateEntity, new GameStateSystem.GameState {
+                        stage = stage,
+                        loadedScene = sceneName
+                    });
+                    UnityEngine.Debug.Log($"Loading scene of name {sceneName}");
                 }
-                else if (desiredState == LoadState.Unload && EntityManager.HasComponent<RequestSceneLoaded>(entity))
+                // If we want to unload it and it is already loaded
+                else if (toUnload == sceneName && EntityManager.HasComponent<RequestSceneLoaded>(entity))
                 {
                     // Request scene loaded
                     PostUpdateCommands.RemoveComponent<RequestSceneLoaded>(entity);
+                    UnityEngine.Debug.Log($"Unloading scene of name {sceneName}");
                 }
             });
+
+            PostUpdateCommands.RemoveComponent<SceneLoadInfo>(loaderSingleton);
         }
     }
 }

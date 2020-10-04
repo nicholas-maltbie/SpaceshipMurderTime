@@ -201,6 +201,7 @@ GameObject:
   - component: {fileID: 849152831}
   - component: {fileID: 849152830}
   - component: {fileID: 849152829}
+  - component: {fileID: 849152832}
   m_Layer: 0
   m_Name: SharedData (3)
   m_TagString: Untagged
@@ -257,6 +258,19 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &849152832
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 849152828}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ca897511351dd3478bdfeb509311cae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sceneName: Skeld
 --- !u!1 &889946975
 GameObject:
   m_ObjectHideFlags: 0
@@ -625,6 +639,7 @@ GameObject:
   - component: {fileID: 2047583382}
   - component: {fileID: 2047583381}
   - component: {fileID: 2047583380}
+  - component: {fileID: 2047583383}
   m_Layer: 0
   m_Name: SharedData (2)
   m_TagString: Untagged
@@ -681,3 +696,16 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2047583383
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2047583379}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ca897511351dd3478bdfeb509311cae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sceneName: LobbyScene

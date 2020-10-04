@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using Unity.Entities;
-using Unity.Scenes;
+using PropHunt.Mixed.Components;
 using static PropHunt.Mixed.Systems.SceneLoaderSystem;
+using Unity.Scenes;
 
 namespace PropHunt.Mixed.Systems
 {
@@ -63,15 +64,16 @@ namespace PropHunt.Mixed.Systems
 
         protected override void OnUpdate()
         {
-            Entities.ForEach((Entity entity, SubScene subScene) =>
+            Entities.ForEach((Entity entity, SubScene subScene, ref SceneLoading loading) =>
             {
-                if (!scenesToLoad.ContainsKey(subScene.SceneAsset.name))
+                string sceneName = loading.sceneName.ToString().Trim();
+                if (!scenesToLoad.ContainsKey(sceneName))
                 {
                     // Ignore subscene if it is not in the dictionary
                     return;
                 }
                 LoadState desiredState;
-                if (!scenesToLoad.TryRemove(subScene.SceneAsset.name, out desiredState))
+                if (!scenesToLoad.TryRemove(sceneName, out desiredState))
                 {
                     // return in failure state
                     return;

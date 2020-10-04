@@ -205,36 +205,28 @@ namespace PropHunt.Mixed.Systems
         }
     }
 
-    [UpdateInGroup(typeof(ClientSimulationSystemGroup))]
     public class DebugPlayerKill : ComponentSystem
     {
-        protected override void OnCreate()
-        {
-            RequireSingletonForUpdate<NetworkIdComponent>();
-        }
-
         protected override void OnUpdate()
         {
             var group = World.GetExistingSystem<GhostPredictionSystemGroup>();
             var tick = group.PredictingTick;
 
-            int localPlayerId = GetSingleton<NetworkIdComponent>().Value;
-
             Entities.ForEach(
-                    (Entity entity, DynamicBuffer<PlayerInput> inputBuffer, ref PredictedGhostComponent prediction) =>
+                (Entity entity, DynamicBuffer<PlayerInput> inputBuffer, ref PredictedGhostComponent prediction) =>
+                {
+                    if (!GhostPredictionSystemGroup.ShouldPredict(tick, prediction))
                     {
-                        if (!GhostPredictionSystemGroup.ShouldPredict(tick, prediction))
-                        {
-                            return;
-                        }
-
-                        // This is a debug which will kill you when you interact
-                        inputBuffer.GetDataAtTick(tick, out var input);
-                        if (input.IsInteracting)
-                        {
-                            PostUpdateCommands.AddComponent<Kill>(entity);
-                        }
+                        return;
                     }
+
+                    // This is a debug which will kill you when you interact
+                    inputBuffer.GetDataAtTick(tick, out var input);
+                    if (input.IsInteracting)
+                    {
+                        PostUpdateCommands.AddComponent<Kill>(entity);
+                    }
+                }
             );
         }
     }
